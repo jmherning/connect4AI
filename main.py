@@ -60,7 +60,7 @@ turn = 0
 while not game_over:
     #Ask for player 1 input
     if turn == 0:
-        col = int(input("Player1 make your selection MY WHOA MAN:")) # forced merge conflict
+        col = int(input("Player1 make your selection ayeeeeeeeee:")) # forced merge conflict
 
         if is_valid_location(board, col):
             row = get_next_open_row(board, col)
