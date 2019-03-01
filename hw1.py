@@ -1,10 +1,13 @@
+# Connect4
+# By Jason Herning
+# hw1 for CS405 Artificial Intelligence Fundamentals
+# updated 02-25-2019
 
-
-
-
+# used Dr. Metzgar's example as a general template
 
 import numpy as np
 import random
+import  math
 
 # Agent Base Class
 class Agent:
@@ -42,8 +45,11 @@ class Agent:
     def getTeam(self):
         return self._team
 
+    def getMoves(self):
+        return self._availableMoves
+
 # agent makes only random moves
-class PureRandomMoveAgent(Agent):
+class randomAgent(Agent):
 
     def __init__(self, team):
         super().__init__(team)
@@ -62,6 +68,74 @@ class HumanAgent(Agent):
     def think(self):
         print(self._env)
         self._nextMove = int(input("Make your move human: "))
+
+
+
+
+# used this as help https://github.com/KeithGalli/Connect4-Python/blob/master/connect4_with_ai.py
+# Agent that runs Min/Max Agent
+class minMaxAgent(Agent):
+
+    def __init__(self, team):
+        super().__init__(team)
+
+    def minMax(self, board, depth, maxPlayer):
+        moves = board.getAvailabeMoves()
+        terminal = self.terminalNode(board)
+        if depth == 0 or terminal:
+            if terminal: # if reached terminal node.
+                if self.checkWinSelf(board): # Check if self Won
+                    return (None, 1000000)
+                elif self.checkWinEnemy(): # Check if enemy Won
+                    return (None, -1000000)
+                else: # No more valid moves.
+                    return (None, 0)
+            else: #Depth is zero.
+                return None, self.scorePosition(board, self.getTeam())
+        if maxPlayer:
+            value = -math.inf
+            column = random.choice(board.getAvailabeMoves())
+            for col in board.getAvailabeMoves():
+                boardCopy = board.copy()
+                boardCopy.dropPiece(col, self.getTeam())
+                newScore = self.minMax(boardCopy, depth-1, False)[1]
+                if newScore > value:
+                    value = newScore
+                    column = col
+            return column, value
+        else: # Minimizing player
+            value = math.inf
+            column = random.choice(board.getAvailabeMoves())
+            for col in board.getAvailabeMoves():
+                boardCopy = board.copy()
+                boardCopy.dropPiece(col, self.getTeam())
+                newScore = self.minMax(boardCopy, depth - 1, True)[1]
+                if newScore > value:
+                    value = newScore
+                    column = col
+            return column, value
+
+
+
+    def scorePosition(self, board, piece):
+        return 1
+
+
+    def terminalNode(self, board):
+        return board.checkWin(self.getTeam()) or board.checkWin(self.getEnemy()) or len(board. getAvailabeMoves()) == 0
+
+
+    # checks for self win in board input.
+    def checkWinSelf(self, board):
+        return board.checkWin(self.getTeam())
+
+    # checks for enemy win in board input.
+    def checkWinEnemy(self, board):
+        return board.checkWin(self.getEnemy())
+
+
+
+
 
 
 
@@ -190,11 +264,13 @@ class Simulation:
 
     def newAgent(self, team, type):
         if type == "random":
-            return PureRandomMoveAgent(team)
+            return randomAgent(team)
         elif type == "human":
             return HumanAgent(team)
+        elif type == "minmax":
+            return minMaxAgent(team)
         else:
-            return PureRandomMoveAgent(team)
+            return randomAgent(team)
 
 
     # runs single game with 2 agents as input
@@ -238,11 +314,11 @@ class Simulation:
     # runs simulation
     def run(self, iterations):
         print("Select Agent 1")
-        print("Options are 'human' or  'random'.\n")
+        print("Options are 'human' or  'random' or 'minmax'.\n")
         p1 = input("p1: ")
 
         print("Select Agent 2")
-        print("Options are 'human' or  'random'.\n")
+        print("Options are 'human' or  'random' or 'minmax'.\n")
         p2 = input("p2: ")
 
 
